@@ -1,0 +1,12 @@
+{
+  "profiles": [
+    {
+      "name": "Yiming",
+      "countries": ["United Kingdom", "United States of America", "France", "Japan", "China"]
+    },
+    {
+      "name": "Ruoling",
+      "countries": ["United Kingdom", "United States of America", "Italy"]
+    }
+  ]
+}
