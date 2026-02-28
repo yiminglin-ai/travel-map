@@ -1,7 +1,7 @@
 import ExportButton from "./ExportButton";
 import "./Sidebar.css";
 
-const TOTAL_COUNTRIES = 241;
+const TOTAL_COUNTRIES = 255;
 
 interface SidebarProps {
   profileName: string;
