@@ -8,7 +8,7 @@ import type { MouseEvent } from "react";
 import { Tooltip, useTooltip } from "./Tooltip";
 import "./WorldMap.css";
 
-const GEO_URL = `${import.meta.env.BASE_URL}data/countries-110m.json`;
+const GEO_URL = `${import.meta.env.BASE_URL}data/countries-50m.json`;
 
 interface WorldMapProps {
   visitedCountries: string[];

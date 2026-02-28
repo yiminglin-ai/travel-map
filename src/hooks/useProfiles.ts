@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { getToken, commitProfiles } from "../lib/githubSync";
 
 export interface Profile {
   name: string;
@@ -9,46 +10,90 @@ interface ProfilesData {
   profiles: Profile[];
 }
 
-const LS_KEY = "travelmap_drafts_v2";
+const LS_KEY = "travelmap_data_v3";
 
-function loadDrafts(): Record<string, string[]> {
+function saveLocal(profiles: Profile[]) {
+  localStorage.setItem(LS_KEY, JSON.stringify({ profiles }));
+}
+
+function loadLocal(): Profile[] | null {
   try {
-    localStorage.removeItem("travelmap_drafts");
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const data: ProfilesData = JSON.parse(raw);
+      if (data.profiles?.length) return data.profiles;
+    }
   } catch {
-    /* ignore corrupt data */
+    /* ignore */
   }
-  return {};
+  return null;
 }
 
-function saveDrafts(drafts: Record<string, string[]>) {
-  localStorage.setItem(LS_KEY, JSON.stringify(drafts));
-}
+export type SyncStatus = "idle" | "syncing" | "success" | "error";
 
 export function useProfiles() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const base = import.meta.env.BASE_URL;
     fetch(`${base}data/profiles.json`)
       .then((res) => res.json())
-      .then((data: ProfilesData) => {
-        const drafts = loadDrafts();
-        const merged = data.profiles.map((p) => ({
-          ...p,
-          countries: drafts[p.name] ?? p.countries,
-        }));
-        setProfiles(merged);
+      .then((remote: ProfilesData) => {
+        const local = loadLocal();
+        if (local) {
+          const merged = remote.profiles.map((rp) => {
+            const lp = local.find((l) => l.name === rp.name);
+            if (!lp) return rp;
+            const combined = Array.from(
+              new Set([...rp.countries, ...lp.countries])
+            );
+            return { ...rp, countries: combined };
+          });
+          setProfiles(merged);
+          saveLocal(merged);
+        } else {
+          setProfiles(remote.profiles);
+          saveLocal(remote.profiles);
+        }
         setLoading(false);
       })
       .catch(() => {
-        setProfiles([{ name: "Default", countries: [] }]);
+        const local = loadLocal();
+        setProfiles(
+          local ?? [
+            { name: "Yiming", countries: [] },
+            { name: "Ruoling", countries: [] },
+          ]
+        );
         setLoading(false);
       });
   }, []);
+
+  const syncToGitHub = useCallback((updated: Profile[]) => {
+    const token = getToken();
+    if (!token) return;
+
+    if (syncTimeout.current !== null) clearTimeout(syncTimeout.current);
+    syncTimeout.current = setTimeout(async () => {
+      setSyncStatus("syncing");
+      const json = JSON.stringify({ profiles: updated }, null, 2) + "\n";
+      const ok = await commitProfiles(json, token);
+      setSyncStatus(ok ? "success" : "error");
+      setTimeout(() => setSyncStatus("idle"), 2500);
+    }, 1000);
+  }, []);
+
+  const persist = useCallback(
+    (updated: Profile[]) => {
+      saveLocal(updated);
+      syncToGitHub(updated);
+    },
+    [syncToGitHub]
+  );
 
   const toggleCountry = useCallback(
     (countryCode: string) => {
@@ -63,13 +108,11 @@ export function useProfiles() {
               : [...p.countries, countryCode],
           };
         });
-        const drafts = loadDrafts();
-        drafts[updated[activeIndex].name] = updated[activeIndex].countries;
-        saveDrafts(drafts);
+        persist(updated);
         return updated;
       });
     },
-    [activeIndex]
+    [activeIndex, persist]
   );
 
   const removeCountry = useCallback(
@@ -82,13 +125,11 @@ export function useProfiles() {
             countries: p.countries.filter((c) => c !== countryCode),
           };
         });
-        const drafts = loadDrafts();
-        drafts[updated[activeIndex].name] = updated[activeIndex].countries;
-        saveDrafts(drafts);
+        persist(updated);
         return updated;
       });
     },
-    [activeIndex]
+    [activeIndex, persist]
   );
 
   const exportJSON = useCallback(() => {
@@ -106,6 +147,7 @@ export function useProfiles() {
     toggleCountry,
     removeCountry,
     exportJSON,
+    syncStatus,
     loading,
   };
 }

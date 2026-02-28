@@ -48,6 +48,29 @@ body {
   font-size: 0.95rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-btn {
+  background: rgba(30, 41, 59, 0.6);
+  border: none;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 1.2rem;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.settings-btn:hover {
+  background: rgba(51, 65, 85, 0.8);
+  color: #cbd5e1;
+}
+
 .app-main {
   flex: 1;
   display: grid;
