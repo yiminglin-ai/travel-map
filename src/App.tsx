@@ -1,8 +1,6 @@
-import { useState } from "react";
 import ProfileTabs from "./components/ProfileTabs";
 import Sidebar from "./components/Sidebar";
 import WorldMap from "./components/WorldMap";
-import SettingsModal from "./components/SettingsModal";
 import { useProfiles } from "./hooks/useProfiles";
 
 export default function App() {
@@ -14,11 +12,8 @@ export default function App() {
     toggleCountry,
     removeCountry,
     exportJSON,
-    syncStatus,
     loading,
   } = useProfiles();
-
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   if (loading) {
     return <div className="app-loading">Loading travel map...</div>;
@@ -31,20 +26,11 @@ export default function App() {
           <h1>Family Travel Map</h1>
           <p>Click countries to mark where each family member has traveled.</p>
         </div>
-        <div className="header-actions">
-          <ProfileTabs
-            profiles={profiles}
-            activeIndex={activeIndex}
-            onSelect={setActiveIndex}
-          />
-          <button
-            className="settings-btn"
-            onClick={() => setSettingsOpen(true)}
-            title="Sync settings"
-          >
-            &#9881;
-          </button>
-        </div>
+        <ProfileTabs
+          profiles={profiles}
+          activeIndex={activeIndex}
+          onSelect={setActiveIndex}
+        />
       </header>
 
       <main className="app-main">
@@ -59,12 +45,6 @@ export default function App() {
           exportJSON={exportJSON}
         />
       </main>
-
-      <SettingsModal
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        syncStatus={syncStatus}
-      />
     </div>
   );
 }
