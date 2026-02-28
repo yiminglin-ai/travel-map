@@ -13,11 +13,25 @@ const GEO_URL = `${import.meta.env.BASE_URL}data/countries-50m.json`;
 interface WorldMapProps {
   visitedCountries: string[];
   onToggleCountry: (code: string) => void;
+  highlightedCountry: string | null;
+}
+
+function getFill(
+  isVisited: boolean,
+  isHighlighted: boolean
+): string {
+  if (isHighlighted) return isVisited ? "#fbbf24" : "#fbbf24";
+  return isVisited ? "#10b981" : "#334155";
+}
+
+function getHoverFill(isVisited: boolean): string {
+  return isVisited ? "#34d399" : "#475569";
 }
 
 export default function WorldMap({
   visitedCountries,
   onToggleCountry,
+  highlightedCountry,
 }: WorldMapProps) {
   const { tooltip, show, hide, move } = useTooltip();
 
@@ -40,6 +54,7 @@ export default function WorldMap({
               geographies.map((geo) => {
                 const name = geo.properties.name;
                 const isVisited = visited.has(name);
+                const isHighlighted = name === highlightedCountry;
                 return (
                   <Geography
                     key={geo.rsmKey}
@@ -54,16 +69,16 @@ export default function WorldMap({
                       move(e.clientX, e.clientY);
                     }}
                     onMouseLeave={hide}
-                    className={`geography ${isVisited ? "visited" : ""}`}
                     style={{
                       default: {
-                        fill: isVisited ? "#10b981" : "#334155",
-                        stroke: "#94a3b8",
-                        strokeWidth: 0.4,
+                        fill: getFill(isVisited, isHighlighted),
+                        stroke: isHighlighted ? "#fbbf24" : "#94a3b8",
+                        strokeWidth: isHighlighted ? 1.2 : 0.4,
                         outline: "none",
+                        transition: "fill 0.2s ease, stroke 0.2s ease",
                       },
                       hover: {
-                        fill: isVisited ? "#34d399" : "#475569",
+                        fill: getHoverFill(isVisited),
                         stroke: "#cbd5e1",
                         strokeWidth: 0.6,
                         outline: "none",

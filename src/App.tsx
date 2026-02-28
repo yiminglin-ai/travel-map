@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ProfileTabs from "./components/ProfileTabs";
 import Sidebar from "./components/Sidebar";
 import WorldMap from "./components/WorldMap";
@@ -14,6 +15,10 @@ export default function App() {
     exportJSON,
     loading,
   } = useProfiles();
+
+  const [highlightedCountry, setHighlightedCountry] = useState<string | null>(
+    null
+  );
 
   if (loading) {
     return <div className="app-loading">Loading travel map...</div>;
@@ -37,12 +42,14 @@ export default function App() {
         <WorldMap
           visitedCountries={activeProfile.countries}
           onToggleCountry={toggleCountry}
+          highlightedCountry={highlightedCountry}
         />
         <Sidebar
           profileName={activeProfile.name}
           countries={activeProfile.countries}
           onRemoveCountry={removeCountry}
           onToggleCountry={toggleCountry}
+          onHighlight={setHighlightedCountry}
           exportJSON={exportJSON}
         />
       </main>

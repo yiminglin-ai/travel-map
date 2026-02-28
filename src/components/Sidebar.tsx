@@ -9,6 +9,7 @@ interface SidebarProps {
   countries: string[];
   onRemoveCountry: (countryCode: string) => void;
   onToggleCountry: (countryCode: string) => void;
+  onHighlight: (countryName: string | null) => void;
   exportJSON: () => string;
 }
 
@@ -21,6 +22,7 @@ export default function Sidebar({
   countries,
   onRemoveCountry,
   onToggleCountry,
+  onHighlight,
   exportJSON,
 }: SidebarProps) {
   const visited = countries.length;
@@ -47,10 +49,17 @@ export default function Sidebar({
         {sortedCountries.length === 0 ? (
           <p className="empty-text">No countries selected yet.</p>
         ) : (
-          sortedCountries.map((code) => (
-            <div className="country-item" key={code}>
-              <span>{code}</span>
-              <button onClick={() => onRemoveCountry(code)}>Remove</button>
+          sortedCountries.map((name) => (
+            <div
+              className="country-item"
+              key={name}
+              onMouseEnter={() => onHighlight(name)}
+              onMouseLeave={() => onHighlight(null)}
+              onTouchStart={() => onHighlight(name)}
+              onTouchEnd={() => onHighlight(null)}
+            >
+              <span>{name}</span>
+              <button onClick={() => onRemoveCountry(name)}>Remove</button>
             </div>
           ))
         )}
