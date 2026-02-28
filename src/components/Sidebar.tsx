@@ -1,3 +1,4 @@
+import CountrySearch from "./CountrySearch";
 import ExportButton from "./ExportButton";
 import "./Sidebar.css";
 
@@ -7,6 +8,7 @@ interface SidebarProps {
   profileName: string;
   countries: string[];
   onRemoveCountry: (countryCode: string) => void;
+  onToggleCountry: (countryCode: string) => void;
   exportJSON: () => string;
 }
 
@@ -18,6 +20,7 @@ export default function Sidebar({
   profileName,
   countries,
   onRemoveCountry,
+  onToggleCountry,
   exportJSON,
 }: SidebarProps) {
   const visited = countries.length;
@@ -32,6 +35,11 @@ export default function Sidebar({
           {visited} of {TOTAL_COUNTRIES} visited ({percentage}%)
         </p>
       </div>
+
+      <CountrySearch
+        visitedCountries={countries}
+        onToggle={onToggleCountry}
+      />
 
       <ExportButton exportJSON={exportJSON} />
 

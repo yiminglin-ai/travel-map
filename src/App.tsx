@@ -42,6 +42,7 @@ export default function App() {
           profileName={activeProfile.name}
           countries={activeProfile.countries}
           onRemoveCountry={removeCountry}
+          onToggleCountry={toggleCountry}
           exportJSON={exportJSON}
         />
       </main>
